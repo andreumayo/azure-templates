@@ -118,7 +118,7 @@ done
 install_java()
 {
     log "Installing Java"
-    #add-apt-repository -y ppa:webupd8team/java
+    add-apt-repository -y ppa:webupd8team/java
     apt-get -y update
     echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
     echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
