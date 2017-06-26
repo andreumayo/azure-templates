@@ -181,8 +181,7 @@ install_kafka()
 {
         cd /usr/local
         name=kafka
-        #version=${KF_VERSION}
-		version=0.10.2.1
+        version=${KF_VERSION}
         #this Kafka version is prefix same used for all versions
         kafkaversion=2.10
         description="Apache Kafka is a distributed publish-subscribe messaging system."
