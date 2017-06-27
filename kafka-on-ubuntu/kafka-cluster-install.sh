@@ -40,6 +40,7 @@ help()
     echo "Parameters:"
     echo "-k kafka version like 0.8.2.1"
     echo "-b broker id"
+    echo "-j broker Private IP address prefix"
     echo "-h view this help content"
     echo "-z zookeeper not kafka"
     echo "-i zookeeper Private IP address prefix"
@@ -85,7 +86,7 @@ INSTANCE_COUNT=1
 ZOOKEEPER_PORT="2181"
 
 #Loop through options passed
-while getopts :k:b:z:i:c:p:h optname; do
+while getopts :k:b:j:z:i:c:p:h optname; do
 	log "Option $optname set with value ${OPTARG}"
 	case $optname in
 		k)  #kafka version
