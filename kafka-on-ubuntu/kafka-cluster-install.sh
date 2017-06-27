@@ -211,8 +211,8 @@ install_kafka()
 		
         sed -r -i "s/(broker.id)=(.*)/\1=${BROKER_ID}/g" config/server.properties
         sed -r -i "s/(zookeeper.connect)=(.*)/\1=$(join , $(expand_ip_range "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}"))/g" config/server.properties
-        sed -r -i "s/(advertised.host.name)=(.*)/\1=${BROKER_IP_PREFIX}${BROKER_ID}/g" config/server.properties
-        sed -r -i "s/(advertised.port)=(.*)/\1=9092/g" config/server.properties
+        sed -r -i "s/#(advertised.host.name)=(.*)/\1=${BROKER_IP_PREFIX}${BROKER_ID}/g" config/server.properties
+        sed -r -i "s/#(advertised.port)=(.*)/\1=9092/g" config/server.properties
 		echo "" >> config/server.properties
 		echo "############################# Delete topics #############################" >> config/server.properties
 		echo "delete.topic.enable=true" >> config/server.properties
