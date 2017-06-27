@@ -78,6 +78,7 @@ fi
 KF_VERSION="0.8.2.1"
 BROKER_ID=0
 ZOOKEEPER1KAFKA0="0"
+BROKER_IP_PREFIX="10.0.0.1"
 
 ZOOKEEPER_IP_PREFIX="10.0.0.4"
 INSTANCE_COUNT=1
@@ -85,33 +86,36 @@ ZOOKEEPER_PORT="2181"
 
 #Loop through options passed
 while getopts :k:b:z:i:c:p:h optname; do
-    log "Option $optname set with value ${OPTARG}"
-  case $optname in
-    k)  #kafka version
-      KF_VERSION=${OPTARG}
-      ;;
-    b)  #broker id
-      BROKER_ID=${OPTARG}
-      ;;
-    z)  #zookeeper not kafka
-      ZOOKEEPER1KAFKA0=${OPTARG}
-      ;;
-    i)  #zookeeper Private IP address prefix
-      ZOOKEEPER_IP_PREFIX=${OPTARG}
-      ;;
-    c) # Number of instances
-        INSTANCE_COUNT=${OPTARG}
-        ;;
-    h)  #show help
-      help
-      exit 2
-      ;;
-    \?) #unrecognized option - show help
-      echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
-      help
-      exit 2
-      ;;
-  esac
+	log "Option $optname set with value ${OPTARG}"
+	case $optname in
+		k)  #kafka version
+			KF_VERSION=${OPTARG}
+			;;
+		b)  #broker id
+			BROKER_ID=${OPTARG}
+			;;
+		j)  #broker Private IP address prefix
+			BROKER_IP_PREFIX=${OPTARG}
+			;;
+		z)  #zookeeper not kafka
+			ZOOKEEPER1KAFKA0=${OPTARG}
+			;;
+		i)  #zookeeper Private IP address prefix
+			ZOOKEEPER_IP_PREFIX=${OPTARG}
+			;;
+		c) # Number of instances
+			INSTANCE_COUNT=${OPTARG}
+			;;
+		h)  #show help
+			help
+			exit 2
+			;;
+		\?) #unrecognized option - show help
+			echo -e \\n"Option -${BOLD}$OPTARG${NORM} not allowed."
+			help
+			exit 2
+			;;
+	esac
 done
 
 # Install Oracle Java
@@ -193,7 +197,7 @@ install_kafka()
         src_package="kafka_${kafkaversion}-${version}.tgz"
         #download_url=http://mirror.sdunix.com/apache/kafka/${version}/${src_package}
 		download_url=http://www-eu.apache.org/dist/kafka/${version}/${src_package}
-
+		
         rm -rf kafka
         mkdir -p kafka
         cd kafka
@@ -203,12 +207,15 @@ install_kafka()
         fi
         tar zxf ${src_package}
         cd kafka_${kafkaversion}-${version}
-
+		
         sed -r -i "s/(broker.id)=(.*)/\1=${BROKER_ID}/g" config/server.properties
         sed -r -i "s/(zookeeper.connect)=(.*)/\1=$(join , $(expand_ip_range "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}"))/g" config/server.properties
-#       cp config/server.properties config/server-1.properties
-#       sed -r -i "s/(broker.id)=(.*)/\1=1/g" config/server-1.properties
-#       sed -r -i "s/^(port)=(.*)/\1=9093/g" config/server-1.properties````
+        sed -r -i "s/(advertised.host.name)=(.*)/\1=${BROKER_IP_PREFIX}${BROKER_ID}/g" config/server.properties
+        sed -r -i "s/(advertised.port)=(.*)/\1=9092/g" config/server.properties
+		echo "" >> config/server.properties
+		echo "############################# Delete topics #############################" >> config/server.properties
+		echo "delete.topic.enable=true" >> config/server.properties
+		
         chmod u+x /usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh
         /usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh /usr/local/kafka/kafka_${kafkaversion}-${version}/config/server.properties &
 }
