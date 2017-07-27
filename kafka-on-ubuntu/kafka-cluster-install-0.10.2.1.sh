@@ -229,6 +229,7 @@ install_manager()
 		sudo apt-get install unzip
 
 		# Download and extract the package
+		cd ~/
 		wget https://github.com/yahoo/kafka-manager/archive/master.zip
 		unzip master.zip
 		mv kafka-manager-master/ kafka-manager
