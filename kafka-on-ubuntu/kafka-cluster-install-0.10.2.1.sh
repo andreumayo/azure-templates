@@ -213,9 +213,45 @@ install_kafka()
 		sed -r -i "s/#(delete.topic.enable=true)/\1/g" config/server.properties
 		sed -r -i "s/(zookeeper.connect)=(.*)/\1=$(join , $(expand_ip_range "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}"))/g" config/server.properties
 		sed -r -i "s/#(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/${BROKER_IP_PREFIX}${BROKER_ID}:9092/g" config/server.properties
+
+		# JMX configuration for kafka manager
+		sed -r -i "s/(KAFKA_JMX_OPTS)=(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"" bin/kafka-run-class.sh
+		sed -i '/exec \$base_dir\/kafka-run-class.sh \$EXTRA_ARGS kafka.Kafka \"\$@\"/i export JMX_PORT=${JMX_PORT:-9999}' kafka-server-start.sh
 		
 		chmod u+x /usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh
 		/usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh /usr/local/kafka/kafka_${kafkaversion}-${version}/config/server.properties &
+}
+
+# Install manager
+install_manager()
+{
+		# Install unzip
+		sudo apt-get install unzip
+
+		# Download and extract the package
+		wget https://github.com/yahoo/kafka-manager/archive/master.zip
+		unzip master.zip
+		mv kafka-manager-master/ kafka-manager
+
+		# Install sbt
+		echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
+		sudo apt-get update
+		sudo apt-get install sbt
+
+		#Build your kafka-manager scripts
+		cd kafka-manager
+		sbt clean dist
+
+		# Copy that Zip file to a suitable location and unzip
+		sudo mv target/universal/kafka-manager-1.3.3.8.zip ~/
+		cd ~/
+		unzip kafka-manager-1.3.3.8.zip
+		rm kafka-manager-1.3.3.8.zip
+
+		# Run
+		cd kafka-manager-1.3.3.8/
+		sudo bin/kafka-manager -Dkafka-manager.zkhosts="localhost:2181" &
 }
 
 # Primary Install Tasks
@@ -233,6 +269,7 @@ then
 		#Install zookeeper
 		#-----------------------
 		install_zookeeper
+		install_manager
 else
 		#
 		#Install kafka
