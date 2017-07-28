@@ -65,7 +65,7 @@ fi
 # TEMP FIX - Re-evaluate and remove when possible
 # This is an interim fix for hostname resolution in current VM
 grep -q "${HOSTNAME}" /etc/hosts
-if [ $? -eq $SUCCESS ];
+if [ $? -eq 0 ];
 then
   echo "${HOSTNAME}found in /etc/hosts"
 else
@@ -226,10 +226,11 @@ install_kafka()
 install_manager()
 {
 		# Install unzip
-		sudo apt-get install unzip
+		apt-get -y install unzip
 
 		# Download and extract the package
-		cd ~/
+		mkdir -p /var/lib/kafka_manager
+		cd /var/lib/kafka_manager/
 		wget https://github.com/yahoo/kafka-manager/archive/master.zip
 		unzip master.zip
 		mv kafka-manager-master/ kafka-manager
@@ -237,16 +238,16 @@ install_manager()
 		# Install sbt
 		echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
 		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
-		sudo apt-get update
-		sudo apt-get install sbt
+		sudo apt-get -y update
+		sudo apt-get -y install sbt
 
 		#Build your kafka-manager scripts
 		cd kafka-manager
 		sbt clean dist
 
 		# Copy that Zip file to a suitable location and unzip
-		sudo mv target/universal/kafka-manager-1.3.3.8.zip ~/
-		cd ~/
+		sudo mv target/universal/kafka-manager-1.3.3.8.zip /var/lib/kafka_manager/
+		cd /var/lib/kafka_manager/
 		unzip kafka-manager-1.3.3.8.zip
 		rm kafka-manager-1.3.3.8.zip
 
