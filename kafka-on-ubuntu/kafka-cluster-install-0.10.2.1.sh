@@ -122,7 +122,10 @@ done
 # Install Oracle Java
 install_java()
 {
-	log "Installing Java"
+	log "############################################################"
+	log "#### Installing Java #######################################"
+	log "############################################################"
+
 	add-apt-repository -y ppa:webupd8team/java
 	apt-get -y update
 	echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
@@ -161,99 +164,112 @@ expand_ip_range() {
 # Install Zookeeper - can expose zookeeper version
 install_zookeeper()
 {
-		mkdir -p /var/lib/zookeeper
-		cd /var/lib/zookeeper
-		wget "http://mirrors.ukfast.co.uk/sites/ftp.apache.org/zookeeper/stable/zookeeper-3.4.10.tar.gz"
-		tar -xvf "zookeeper-3.4.10.tar.gz"
+	log "############################################################"
+	log "#### Installing Zookeeper ##################################"
+	log "############################################################"
 
-		touch zookeeper-3.4.10/conf/zoo.cfg
+	mkdir -p /var/lib/zookeeper
+	cd /var/lib/zookeeper
+	wget "http://mirrors.ukfast.co.uk/sites/ftp.apache.org/zookeeper/stable/zookeeper-3.4.10.tar.gz"
+	tar -xvf "zookeeper-3.4.10.tar.gz"
 
-		echo "tickTime=2000" >> zookeeper-3.4.10/conf/zoo.cfg
-		echo "dataDir=/var/lib/zookeeper" >> zookeeper-3.4.10/conf/zoo.cfg
-		echo "clientPort=2181" >> zookeeper-3.4.10/conf/zoo.cfg
-		echo "initLimit=5" >> zookeeper-3.4.10/conf/zoo.cfg
-		echo "syncLimit=2" >> zookeeper-3.4.10/conf/zoo.cfg
-		# OLD Test echo "server.1=${ZOOKEEPER_IP_PREFIX}:2888:3888" >> zookeeper-3.4.6/conf/zoo.cfg
-		$(expand_ip_range_for_server_properties "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}")
+	touch zookeeper-3.4.10/conf/zoo.cfg
 
-		echo $(($1+1)) >> /var/lib/zookeeper/myid
+	echo "tickTime=2000" >> zookeeper-3.4.10/conf/zoo.cfg
+	echo "dataDir=/var/lib/zookeeper" >> zookeeper-3.4.10/conf/zoo.cfg
+	echo "clientPort=2181" >> zookeeper-3.4.10/conf/zoo.cfg
+	echo "initLimit=5" >> zookeeper-3.4.10/conf/zoo.cfg
+	echo "syncLimit=2" >> zookeeper-3.4.10/conf/zoo.cfg
+	# OLD Test echo "server.1=${ZOOKEEPER_IP_PREFIX}:2888:3888" >> zookeeper-3.4.6/conf/zoo.cfg
+	$(expand_ip_range_for_server_properties "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}")
 
-		zookeeper-3.4.10/bin/zkServer.sh start
+	echo $(($1+1)) >> /var/lib/zookeeper/myid
+
+	zookeeper-3.4.10/bin/zkServer.sh start
 }
 
 # Install kafka
 install_kafka()
 {
-		cd /usr/local
-		name=kafka
-		version=${KF_VERSION}
-		#this Kafka version is prefix same used for all versions
-		kafkaversion=2.10
-		description="Apache Kafka is a distributed publish-subscribe messaging system."
-		url="https://kafka.apache.org/"
-		arch="all"
-		section="misc"
-		license="Apache Software License 2.0"
-		package_version="-1"
-		src_package="kafka_${kafkaversion}-${version}.tgz"
-		#download_url=http://mirror.sdunix.com/apache/kafka/${version}/${src_package}
-		download_url=http://www-eu.apache.org/dist/kafka/${version}/${src_package}
-		
-		rm -rf kafka
-		mkdir -p kafka
-		cd kafka
-		#_ MAIN _#
-		if [[ ! -f "${src_package}" ]]; then
-		  wget ${download_url}
-		fi
-		tar zxf ${src_package}
-		cd kafka_${kafkaversion}-${version}
-		
-		sed -r -i "s/(broker.id)=(.*)/\1=${BROKER_ID}/g" config/server.properties
-		sed -r -i "s/#(delete.topic.enable=true)/\1/g" config/server.properties
-		sed -r -i "s/(zookeeper.connect)=(.*)/\1=$(join , $(expand_ip_range "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}"))/g" config/server.properties
-		sed -r -i "s/#(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/${BROKER_IP_PREFIX}${BROKER_ID}:9092/g" config/server.properties
+	log "############################################################"
+	log "#### Installing Kafka ######################################"
+	log "############################################################"
 
-		# JMX configuration for kafka manager
-		sed -r -i "s/(KAFKA_JMX_OPTS)=(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"" bin/kafka-run-class.sh
-		sed -i '/exec \$base_dir\/kafka-run-class.sh \$EXTRA_ARGS kafka.Kafka \"\$@\"/i export JMX_PORT=${JMX_PORT:-9999}' kafka-server-start.sh
-		
-		chmod u+x /usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh
-		/usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh /usr/local/kafka/kafka_${kafkaversion}-${version}/config/server.properties &
+	cd /usr/local
+	name=kafka
+	version=${KF_VERSION}
+	#this Kafka version is prefix same used for all versions
+	kafkaversion=2.10
+	description="Apache Kafka is a distributed publish-subscribe messaging system."
+	url="https://kafka.apache.org/"
+	arch="all"
+	section="misc"
+	license="Apache Software License 2.0"
+	package_version="-1"
+	src_package="kafka_${kafkaversion}-${version}.tgz"
+	#download_url=http://mirror.sdunix.com/apache/kafka/${version}/${src_package}
+	download_url=http://www-eu.apache.org/dist/kafka/${version}/${src_package}
+	
+	rm -rf kafka
+	mkdir -p kafka
+	cd kafka
+	#_ MAIN _#
+	if [[ ! -f "${src_package}" ]]; then
+	  wget ${download_url}
+	fi
+	tar zxf ${src_package}
+	cd kafka_${kafkaversion}-${version}
+	
+	sed -r -i "s/(broker.id)=(.*)/\1=${BROKER_ID}/g" config/server.properties
+	sed -r -i "s/#(delete.topic.enable=true)/\1/g" config/server.properties
+	sed -r -i "s/(zookeeper.connect)=(.*)/\1=$(join , $(expand_ip_range "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}"))/g" config/server.properties
+	sed -r -i "s/#(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/${BROKER_IP_PREFIX}${BROKER_ID}:9092/g" config/server.properties
+
+	# JMX configuration for kafka manager
+	sed -r -i "s/(KAFKA_JMX_OPTS)=(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"" bin/kafka-run-class.sh
+	sed -i '/exec \$base_dir\/kafka-run-class.sh \$EXTRA_ARGS kafka.Kafka \"\$@\"/i export JMX_PORT=${JMX_PORT:-9999}' kafka-server-start.sh
+	
+	chmod u+x /usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh
+	/usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh /usr/local/kafka/kafka_${kafkaversion}-${version}/config/server.properties &
 }
 
 # Install manager
 install_manager()
 {
-		# Install unzip
-		apt-get -y install unzip
+	log "############################################################"
+	log "#### Installing Manager ####################################"
+	log "############################################################"
 
-		# Download and extract the package
-		mkdir -p /var/lib/kafka_manager
-		cd /var/lib/kafka_manager/
-		wget https://github.com/yahoo/kafka-manager/archive/master.zip
-		unzip master.zip
-		mv kafka-manager-master/ kafka-manager
+	# Install unzip
+	apt-get -y install unzip
 
-		# Install sbt
-		echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
-		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
-		sudo apt-get -y update
-		sudo apt-get -y install sbt
+	# Download and extract the package
+	mkdir -p /var/lib/kafka_manager
+	cd /var/lib/kafka_manager/
+	wget https://github.com/yahoo/kafka-manager/archive/master.zip
+	unzip master.zip
+	mv kafka-manager-master/ kafka-manager
 
-		#Build your kafka-manager scripts
-		cd kafka-manager
-		sbt clean dist
+	# Install sbt
+	echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823
+	sudo apt-get -y update
+	sudo apt-get -y install sbt
 
-		# Copy that Zip file to a suitable location and unzip
-		sudo mv target/universal/kafka-manager-1.3.3.8.zip /var/lib/kafka_manager/
-		cd /var/lib/kafka_manager/
-		unzip kafka-manager-1.3.3.8.zip
-		rm kafka-manager-1.3.3.8.zip
+	#Build your kafka-manager scripts
+	cd kafka-manager
+	sbt clean dist
 
-		# Run
-		cd kafka-manager-1.3.3.8/
-		sudo bin/kafka-manager -Dkafka-manager.zkhosts="localhost:2181" &
+	# Copy that Zip file to a suitable location and unzip
+	MANAGER_VERSION=`ls target/universal/kafka-manager-* | sed 's/target\/universal\/kafka-manager-//' | sed 's/\.zip$//'`
+	sudo mv target/universal/kafka-manager-${MANAGER_VERSION}.zip /var/lib/kafka_manager/
+	cd /var/lib/kafka_manager/
+	unzip kafka-manager-${MANAGER_VERSION}.zip
+	rm kafka-manager-${MANAGER_VERSION}.zip
+
+	# Run
+	cd kafka-manager-${MANAGER_VERSION}/
+	sudo bin/kafka-manager -Dkafka-manager.zkhosts="localhost:2181" &
 }
 
 # Primary Install Tasks
