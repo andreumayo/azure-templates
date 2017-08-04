@@ -226,8 +226,8 @@ install_kafka()
 	sed -r -i "s/#(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/${BROKER_IP_PREFIX}${BROKER_ID}:9092/g" config/server.properties
 
 	# JMX configuration for kafka manager
-	sed -r -i "s/(KAFKA_JMX_OPTS)=(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"" bin/kafka-run-class.sh
-	sed -i '/exec \$base_dir\/kafka-run-class.sh \$EXTRA_ARGS kafka.Kafka \"\$@\"/i export JMX_PORT=${JMX_PORT:-9999}' kafka-server-start.sh
+	sed -r -i "s/(KAFKA_JMX_OPTS)=\"\-(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"/" bin/kafka-run-class.sh
+	sed -i '/exec \$base_dir\/kafka-run-class.sh \$EXTRA_ARGS kafka.Kafka \"\$@\"/i export JMX_PORT=${JMX_PORT:-9999}/' bin/kafka-server-start.sh
 	
 	chmod u+x /usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh
 	/usr/local/kafka/kafka_${kafkaversion}-${version}/bin/kafka-server-start.sh /usr/local/kafka/kafka_${kafkaversion}-${version}/config/server.properties &
