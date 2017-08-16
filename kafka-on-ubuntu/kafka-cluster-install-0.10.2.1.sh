@@ -224,7 +224,10 @@ install_kafka()
 	sed -r -i "s/#(delete.topic.enable=true)/\1/g" config/server.properties
 	sed -r -i "s/(zookeeper.connect)=(.*)/\1=$(join , $(expand_ip_range "${ZOOKEEPER_IP_PREFIX}-${INSTANCE_COUNT}"))/g" config/server.properties
 	sed -r -i "s/#(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/${BROKER_IP_PREFIX}${BROKER_ID}:9092/g" config/server.properties
-
+	
+	sed -r -i "s/(log.retention.hours)=(.*)/\1=1/g" config/server.properties
+	sed -r -i "s/#(log.segment.bytes)=(.*)/\1=1000000000/g" config/server.properties
+	
 	# JMX configuration for kafka manager
 	sed -r -i "s/(KAFKA_JMX_OPTS)=\"\-(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"/" bin/kafka-run-class.sh
 	sed -i '/exec \$base_dir\/kafka-run-class.sh \$EXTRA_ARGS kafka.Kafka \"\$@\"/i export JMX_PORT=${JMX_PORT:-9999}' bin/kafka-server-start.sh
