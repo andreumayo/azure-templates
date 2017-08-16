@@ -226,7 +226,7 @@ install_kafka()
 	sed -r -i "s/#(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/${BROKER_IP_PREFIX}${BROKER_ID}:9092/g" config/server.properties
 	
 	sed -r -i "s/(log.retention.hours)=(.*)/\1=1/g" config/server.properties
-	sed -r -i "s/#(log.segment.bytes)=(.*)/\1=1000000000/g" config/server.properties
+	sed -r -i "s/#(log.retention.bytes)=(.*)/\1=1000000000/g" config/server.properties
 	
 	# JMX configuration for kafka manager
 	sed -r -i "s/(KAFKA_JMX_OPTS)=\"\-(.*)/\1=\"-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${BROKER_IP_PREFIX}${BROKER_ID} -Djava.net.preferIPv4Stack=true\"/" bin/kafka-run-class.sh
